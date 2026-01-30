@@ -1,5 +1,5 @@
 {
-  "name": "Auto Add Comment",
+  "name": "auto-add-comment",
   "displayName": "Auto Add Comment",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.1",
