@@ -31,7 +31,7 @@
       "properties": {
         "fileAutoComment.commentMarker": {
           "type": "string",
-          "default": "bbbb",
+          "default": "project",
           "description": "Unique marker for identifying auto-generated comments (used in templates with {marker})."
         },
         "fileAutoComment.timeOffset": {
