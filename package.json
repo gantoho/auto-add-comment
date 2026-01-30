@@ -1,6 +1,6 @@
 {
-  "name": "auto-add-comment",
-  "displayName": "auto-add-comment",
+  "name": "Auto Add Comment",
+  "displayName": "Auto Add Comment",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.1",
   "icon": "images/ro_logo.png",
