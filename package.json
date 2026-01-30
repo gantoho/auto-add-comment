@@ -3,7 +3,8 @@
   "displayName": "auto-add-comment",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.1",
-  "publisher": "ganto",
+  "icon": "images/ro_logo.png",
+  "publisher": "Ganto",
   "repository": {
     "type": "git",
     "url": "https://github.com/gantoho/auto-add-comment.git"

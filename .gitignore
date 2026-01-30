@@ -1,1 +1,60 @@
-node_modules
+# 依赖包
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.pnpm-debug.log
+
+# 编译/构建产物
+out/
+dist/
+build/
+*.tsbuildinfo
+*.js.map
+*.d.ts.bak
+
+# VSCode 插件开发相关
+.vscode-test/
+*.vsix
+extension-dev.log
+test-results/
+coverage/
+.nyc_output/
+
+# 编辑器配置
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.env.local
+.env.development
+.env.production
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.temp
+
+# 日志文件
+*.log
+logs/
+
+# 打包文件
+*.zip
+*.tar.gz
+*.rar
