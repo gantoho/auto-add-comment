@@ -5,6 +5,9 @@ import * as path from 'path';
 const processingFiles = new Set<string>();
 const PROCESS_DELAY = 1000;
 
+// 插件启用状态
+let isEnabled = false;
+
 /**
  * 获取配置的自定义注释标识
  * @returns 自定义标识字符串
@@ -94,7 +97,38 @@ function findMarkerCommentLine(document: vscode.TextDocument): number | null {
 
 // 激活插件
 export function activate(context: vscode.ExtensionContext) {
+    // 注册切换插件状态的命令
+    const toggleCommand = vscode.commands.registerCommand('auto-add-comment.toggle', () => {
+        isEnabled = !isEnabled;
+        vscode.window.showInformationMessage(`Auto Add Comment is now ${isEnabled ? 'enabled' : 'disabled'}`);
+        // 更新状态栏按钮
+        updateStatusBarItem();
+        // 更新上下文值，用于状态栏按钮的显示条件
+        vscode.commands.executeCommand('setContext', 'autoAddComment:enabled', isEnabled);
+    });
+
+    // 创建状态栏按钮
+    let statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.command = 'auto-add-comment.toggle';
+    statusBarItem.text = isEnabled ? `$(check)` : `$(x)`;
+    statusBarItem.tooltip = `Click to ${isEnabled ? 'disable' : 'enable'} Auto Add Comment`;
+    statusBarItem.show();
+
+    // 设置初始上下文值
+    vscode.commands.executeCommand('setContext', 'autoAddComment:enabled', isEnabled);
+
+    // 更新状态栏按钮状态
+    function updateStatusBarItem() {
+        statusBarItem.text = isEnabled ? `$(check)` : `$(x)`;
+        statusBarItem.tooltip = `Click to ${isEnabled ? 'disable' : 'enable'} Auto Add Comment`;
+    }
+
     const disposable = vscode.workspace.onWillSaveTextDocument(async (event) => {
+        // 检查插件是否启用
+        if (!isEnabled) {
+            return;
+        }
+
         const document = event.document;
         const filePath = document.uri.fsPath;
 
@@ -160,6 +194,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable);
+    context.subscriptions.push(toggleCommand);
+    context.subscriptions.push(statusBarItem);
 }
 
 export function deactivate() {}

@@ -3,7 +3,7 @@
   "displayName": "Auto Add Comment",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.1",
-  "icon": "images/ro_logo.png",
+  "icon": "images/icon.jpg",
   "publisher": "Ganto",
   "repository": {
     "type": "git",
@@ -22,8 +22,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "auto-end-add-comment.helloWorld",
-        "title": "Hello World"
+        "command": "auto-add-comment.toggle",
+        "title": "Toggle Auto Add Comment"
       }
     ],
     "configuration": {
@@ -55,6 +55,14 @@
           }
         }
       }
+    },
+    "menus": {
+      "statusBar": [
+        {
+          "command": "auto-add-comment.toggle",
+          "group": "navigation"
+        }
+      ]
     }
   },
   "scripts": {
