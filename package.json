@@ -3,7 +3,7 @@
   "displayName": "Auto Add Comment",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.1",
-  "icon": "images/icon.jpg",
+  "icon": "images/icon.png",
   "publisher": "Ganto",
   "license": "MIT",
   "repository": {
