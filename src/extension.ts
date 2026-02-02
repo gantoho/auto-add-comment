@@ -132,6 +132,10 @@ export function activate(context: vscode.ExtensionContext) {
         const document = event.document;
         const filePath = document.uri.fsPath;
 
+        if (!document.isDirty) {
+            return;
+        }
+
         // 防循环：同一文件短时间内只处理一次
         if (processingFiles.has(filePath)) {
             console.log(`[防循环] 跳过重复处理文件: ${filePath}`);
