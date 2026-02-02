@@ -132,10 +132,6 @@ export function activate(context: vscode.ExtensionContext) {
         const document = event.document;
         const filePath = document.uri.fsPath;
 
-        if (event.reason !== vscode.TextDocumentSaveReason.Manual) {
-            return;
-        }
-
         if (!document.isDirty) {
             return;
         }
