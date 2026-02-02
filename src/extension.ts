@@ -201,9 +201,42 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // 检查是否需要自动打开 README
+    checkAndOpenReadme(context);
+
     context.subscriptions.push(disposable);
     context.subscriptions.push(toggleCommand);
     context.subscriptions.push(statusBarItem);
 }
+
+/**
+ * 检查版本并自动打开 README
+ */
+async function checkAndOpenReadme(context: vscode.ExtensionContext) {
+    const config = vscode.workspace.getConfiguration('fileAutoComment');
+    const lastVersion = context.globalState.get<string>('lastVersion');
+    const currentVersion = context.extension.packageJSON.version;
+
+    // 如果是新安装或版本更新
+    if (lastVersion !== currentVersion) {
+        // 更新存储的版本号
+        await context.globalState.update('lastVersion', currentVersion);
+
+        // 询问用户是否查看更新说明
+        const selection = await vscode.window.showInformationMessage(
+            `Auto Add Comment 已更新至 v${currentVersion}，是否查看更新说明？`,
+            '查看 README',
+            '忽略'
+        );
+
+        if (selection === '查看 README') {
+            // 打开 README 文件
+            const readmePath = path.join(context.extensionPath, 'README.md');
+            const uri = vscode.Uri.file(readmePath);
+            await vscode.commands.executeCommand('markdown.showPreview', uri);
+        }
+    }
+}
+
 
 export function deactivate() {}
