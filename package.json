@@ -45,10 +45,7 @@
           "default": {
             "php": "<?php # {marker}|{time} ?>",
             "js": "// ! {marker}|{time} !",
-            "css": "/* ! {marker}|{time} ! */",
-            "vue": "<!-- ! {marker}|{time} ! -->",
-            "html": "<!-- ! {marker}|{time} ! -->",
-            "yaml": "# ! {marker}|{time} !"
+            "css": "/* ! {marker}|{time} ! */"
           },
           "description": "Comment templates for different file types. Use {time} as placeholder for current time (format: YYYY-MM-DD HH:mm:ss)",
           "additionalProperties": {
