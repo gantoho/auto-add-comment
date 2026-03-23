@@ -7,6 +7,10 @@ install tool
 ```sh
 $ npm install -g @vscode/vsce
 ```
+compile
+```sh
+$ npm run compile
+```
 build
 ```sh
 $ npm install

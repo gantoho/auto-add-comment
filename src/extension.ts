@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 // 防循环标记
 const processingFiles = new Set<string>();
@@ -97,21 +98,16 @@ function findMarkerCommentLine(document: vscode.TextDocument): number | null {
 
 // 激活插件
 export function activate(context: vscode.ExtensionContext) {
-    // 注册切换插件状态的命令
+    // 注册打开Webview面板的命令
     const toggleCommand = vscode.commands.registerCommand('auto-add-comment.toggle', () => {
-        isEnabled = !isEnabled;
-        vscode.window.showInformationMessage(`Auto Add Comment is now ${isEnabled ? 'enabled' : 'disabled'}`);
-        // 更新状态栏按钮
-        updateStatusBarItem();
-        // 更新上下文值，用于状态栏按钮的显示条件
-        vscode.commands.executeCommand('setContext', 'autoAddComment:enabled', isEnabled);
+        createWebviewPanel(context);
     });
 
     // 创建状态栏按钮
     let statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.command = 'auto-add-comment.toggle';
     statusBarItem.text = isEnabled ? `$(check)` : `$(x)`;
-    statusBarItem.tooltip = `Click to ${isEnabled ? 'disable' : 'enable'} Auto Add Comment`;
+    statusBarItem.tooltip = `Click to open Auto Add Comment settings`;
     statusBarItem.show();
 
     // 设置初始上下文值
@@ -120,7 +116,60 @@ export function activate(context: vscode.ExtensionContext) {
     // 更新状态栏按钮状态
     function updateStatusBarItem() {
         statusBarItem.text = isEnabled ? `$(check)` : `$(x)`;
-        statusBarItem.tooltip = `Click to ${isEnabled ? 'disable' : 'enable'} Auto Add Comment`;
+        statusBarItem.tooltip = `Click to open Auto Add Comment settings`;
+    }
+
+    // 创建Webview面板
+    function createWebviewPanel(context: vscode.ExtensionContext) {
+        const panel = vscode.window.createWebviewPanel(
+            'autoAddCommentSettings',
+            'Auto Add Comment Settings',
+            vscode.ViewColumn.Active,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true
+            }
+        );
+
+        // 获取当前启用状态
+        const currentState = isEnabled;
+
+        // 设置Webview内容
+        panel.webview.html = getWebviewContent(currentState);
+
+        // 处理Webview消息
+        panel.webview.onDidReceiveMessage(
+            message => {
+                switch (message.command) {
+                    case 'toggleEnable':
+                        isEnabled = message.enabled;
+                        updateStatusBarItem();
+                        vscode.commands.executeCommand('setContext', 'autoAddComment:enabled', isEnabled);
+                        vscode.window.showInformationMessage(`Auto Add Comment is now ${isEnabled ? 'enabled' : 'disabled'}`);
+                        // 更新Webview界面状态
+                        panel.webview.postMessage({
+                            command: 'updateStatus',
+                            enabled: isEnabled
+                        });
+                        break;
+                }
+            },
+            undefined,
+            context.subscriptions
+        );
+    }
+
+    // 生成Webview内容
+    function getWebviewContent(enabled: boolean): string {
+        // 读取HTML文件内容
+        const htmlPath = path.join(context.extensionPath, 'webview.html');
+        let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+        
+        // 替换模板变量
+        htmlContent = htmlContent.replace('{{enabled}}', enabled ? 'checked' : '');
+        htmlContent = htmlContent.replace('{{status}}', enabled ? 'Enabled' : 'Disabled');
+        
+        return htmlContent;
     }
 
     const disposable = vscode.workspace.onWillSaveTextDocument(async (event) => {
