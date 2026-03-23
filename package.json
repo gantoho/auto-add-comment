@@ -42,14 +42,18 @@
         },
         "fileAutoComment.templates": {
           "type": "object",
-          "default": {
-            "php": "<?php # {marker}|{time} ?>",
-            "js": "// ! {marker}|{time} !",
-            "css": "/* ! {marker}|{time} ! */"
-          },
+          "default": {},
           "description": "Comment templates for different file types. Use {time} as placeholder for current time (format: YYYY-MM-DD HH:mm:ss)",
           "additionalProperties": {
             "type": "string"
+          }
+        },
+        "fileAutoComment.enabledTemplates": {
+          "type": "object",
+          "default": {},
+          "description": "Enabled status for each template",
+          "additionalProperties": {
+            "type": "boolean"
           }
         }
       }

@@ -59,10 +59,24 @@ function formatOffsetTime(): string {
 function getCommentContentByConfig(fileExt: string): string | null {
     const config = vscode.workspace.getConfiguration('fileAutoComment');
     const templates = config.get<Record<string, string>>('templates', {});
+    const enabledTemplates = config.get<Record<string, boolean>>('enabledTemplates', {});
+    
     // 获取对应后缀的模板
-    const template = templates[fileExt];
+    let template = templates[fileExt];
+    
+    // 如果模板不存在，使用默认模板
     if (!template) {
-        return null;
+        const defaultTemplates = {};
+        template = defaultTemplates[fileExt as keyof typeof defaultTemplates];
+        if (!template) {
+            return null;
+        }
+    } else {
+        // 检查模板是否被启用
+        const isEnabled = enabledTemplates[fileExt] !== false; // 默认启用
+        if (!isEnabled) {
+            return null;
+        }
     }
 
     // 获取自定义标识和偏移时间
@@ -98,16 +112,19 @@ function findMarkerCommentLine(document: vscode.TextDocument): number | null {
 
 // 激活插件
 export function activate(context: vscode.ExtensionContext) {
-    // 注册打开Webview面板的命令
+    // 存储webview面板引用
+    let webviewPanel: vscode.WebviewPanel | undefined;
+
+    // 注册命令：显示弹出面板
     const toggleCommand = vscode.commands.registerCommand('auto-add-comment.toggle', () => {
-        createWebviewPanel(context);
+        showWebviewPanel(context);
     });
 
     // 创建状态栏按钮
     let statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.command = 'auto-add-comment.toggle';
-    statusBarItem.text = isEnabled ? `$(check)` : `$(x)`;
-    statusBarItem.tooltip = `Click to open Auto Add Comment settings`;
+    statusBarItem.text = isEnabled ? `$(pass-filled) 开启` : `$(circle-large-outline) 关闭`;
+    statusBarItem.tooltip = `Click to open Auto Add Comment panel`;
     statusBarItem.show();
 
     // 设置初始上下文值
@@ -115,30 +132,37 @@ export function activate(context: vscode.ExtensionContext) {
 
     // 更新状态栏按钮状态
     function updateStatusBarItem() {
-        statusBarItem.text = isEnabled ? `$(check)` : `$(x)`;
-        statusBarItem.tooltip = `Click to open Auto Add Comment settings`;
+        statusBarItem.text = isEnabled ? `$(pass-filled) 开启` : `$(circle-large-outline) 关闭`;
+        statusBarItem.tooltip = `Click to open Auto Add Comment panel`;
     }
 
-    // 创建Webview面板
-    function createWebviewPanel(context: vscode.ExtensionContext) {
-        const panel = vscode.window.createWebviewPanel(
-            'autoAddCommentSettings',
-            'Auto Add Comment Settings',
+    // 显示webview面板
+    function showWebviewPanel(context: vscode.ExtensionContext) {
+        // 如果面板已经打开，就关闭它
+        if (webviewPanel) {
+            webviewPanel.dispose();
+        }
+
+        // 创建新的webview面板
+        webviewPanel = vscode.window.createWebviewPanel(
+            'autoAddCommentPanel',
+            'Auto Add Comment',
             vscode.ViewColumn.Active,
             {
                 enableScripts: true,
-                retainContextWhenHidden: true
+                retainContextWhenHidden: true,
+                localResourceRoots: [vscode.Uri.file(context.extensionPath)],
+                enableCommandUris: true,
+                enableFindWidget: true,
+                enableForms: true
             }
         );
 
-        // 获取当前启用状态
-        const currentState = isEnabled;
+        // 更新webview内容
+        updateWebviewContent();
 
-        // 设置Webview内容
-        panel.webview.html = getWebviewContent(currentState);
-
-        // 处理Webview消息
-        panel.webview.onDidReceiveMessage(
+        // 处理webview消息
+        webviewPanel.webview.onDidReceiveMessage(
             message => {
                 switch (message.command) {
                     case 'toggleEnable':
@@ -146,10 +170,101 @@ export function activate(context: vscode.ExtensionContext) {
                         updateStatusBarItem();
                         vscode.commands.executeCommand('setContext', 'autoAddComment:enabled', isEnabled);
                         vscode.window.showInformationMessage(`Auto Add Comment is now ${isEnabled ? 'enabled' : 'disabled'}`);
-                        // 更新Webview界面状态
-                        panel.webview.postMessage({
-                            command: 'updateStatus',
-                            enabled: isEnabled
+                        // 实时更新webview中的状态
+                        if (webviewPanel) {
+                            webviewPanel.webview.postMessage({
+                                command: 'updateStatus',
+                                enabled: isEnabled
+                            });
+                        }
+                        break;
+                    case 'updateConfig':
+                        // 更新配置
+                        const config = vscode.workspace.getConfiguration('fileAutoComment');
+                        const updatePromises = [];
+                        if (message.commentMarker !== undefined) {
+                            updatePromises.push(config.update('commentMarker', message.commentMarker, vscode.ConfigurationTarget.Global));
+                        }
+                        if (message.timeOffset !== undefined) {
+                            updatePromises.push(config.update('timeOffset', message.timeOffset, vscode.ConfigurationTarget.Global));
+                        }
+                        if (message.templates !== undefined) {
+                            updatePromises.push(config.update('templates', message.templates, vscode.ConfigurationTarget.Global));
+                        }
+                        if (message.enabledTemplates !== undefined) {
+                            console.log('Saving enabledTemplates:', message.enabledTemplates);
+                            updatePromises.push(config.update('enabledTemplates', message.enabledTemplates, vscode.ConfigurationTarget.Global));
+                        }
+                        
+                        if (updatePromises.length > 0) {
+                            Promise.all(updatePromises).then(() => {
+                                // 验证保存是否成功
+                                const savedEnabledTemplates = config.get<Record<string, boolean>>('enabledTemplates', {});
+                                console.log('Saved enabledTemplates:', savedEnabledTemplates);
+                                vscode.window.showInformationMessage('Auto Add Comment settings updated');
+                            }).catch(error => {
+                                console.error('Error updating config:', error);
+                                vscode.window.showErrorMessage('Failed to update settings');
+                            });
+                        }
+                        break;
+                    case 'openSettings':
+                        // 打开扩展设置
+                        vscode.commands.executeCommand('workbench.action.openSettings', 'fileAutoComment');
+                        break;
+                    case 'confirmDelete':
+                        // 显示删除确认对话框
+                        vscode.window.showInformationMessage(
+                            'Are you sure you want to delete this template?',
+                            { modal: true },
+                            'Yes',
+                            'No'
+                        ).then(answer => {
+                            if (answer === 'Yes' && webviewPanel) {
+                                // 获取当前配置
+                                const config = vscode.workspace.getConfiguration('fileAutoComment');
+                                const templates = config.get<Record<string, string>>('templates', {});
+                                const enabledTemplates = config.get<Record<string, boolean>>('enabledTemplates', {});
+                                
+                                // 从webview获取要删除的模板语言
+                                // 注意：这里需要从模板项中获取语言名称
+                                // 由于我们只有templateId，需要通过其他方式获取语言
+                                // 这里我们采用一种简单的方法：让webview在发送confirmDelete消息时包含语言名称
+                                // 但为了保持兼容性，我们先尝试从界面中获取
+                                
+                                // 发送确认删除消息到webview
+                                webviewPanel.webview.postMessage({
+                                    command: 'deleteConfirmed',
+                                    templateId: message.templateId
+                                });
+                                
+                                // 注意：实际的删除操作需要在webview端完成后，通过save按钮保存
+                                // 因为只有在保存时才会更新配置
+                            }
+                        });
+                        break;
+                    case 'resetSettings':
+                        // 恢复默认设置
+                        vscode.window.showInformationMessage(
+                            'Are you sure you want to reset all settings to default?',
+                            { modal: true },
+                            'Yes',
+                            'No'
+                        ).then(answer => {
+                            if (answer === 'Yes') {
+                                const config = vscode.workspace.getConfiguration('fileAutoComment');
+                                // 恢复默认配置
+                                Promise.all([
+                                    config.update('commentMarker', 'project', vscode.ConfigurationTarget.Global),
+                                    config.update('timeOffset', 5, vscode.ConfigurationTarget.Global),
+                                    config.update('templates', {}, vscode.ConfigurationTarget.Global),
+                                    config.update('enabledTemplates', {}, vscode.ConfigurationTarget.Global)
+                                ]).then(() => {
+                                    // 配置更新完成后，重新加载webview内容
+                                    updateWebviewContent();
+                                    vscode.window.showInformationMessage('Auto Add Comment settings reset to default');
+                                });
+                            }
                         });
                         break;
                 }
@@ -157,19 +272,65 @@ export function activate(context: vscode.ExtensionContext) {
             undefined,
             context.subscriptions
         );
+
+        // 当面板关闭时，清除引用
+        webviewPanel.onDidDispose(() => {
+            webviewPanel = undefined;
+        });
     }
 
-    // 生成Webview内容
-    function getWebviewContent(enabled: boolean): string {
-        // 读取HTML文件内容
+    // 更新webview内容
+    function updateWebviewContent() {
+        if (!webviewPanel) {
+            return;
+        }
+
+        // 读取webview.html文件
         const htmlPath = path.join(context.extensionPath, 'webview.html');
-        let htmlContent = fs.readFileSync(htmlPath, 'utf8');
-        
-        // 替换模板变量
-        htmlContent = htmlContent.replace('{{enabled}}', enabled ? 'checked' : '');
-        htmlContent = htmlContent.replace('{{status}}', enabled ? 'Enabled' : 'Disabled');
-        
-        return htmlContent;
+        let htmlContent = fs.readFileSync(htmlPath, 'utf-8');
+
+        // 生成webview资源URI
+        const cssPath = vscode.Uri.file(path.join(context.extensionPath, 'webview.css'));
+        const jsPath = vscode.Uri.file(path.join(context.extensionPath, 'webview.js'));
+        const cssUri = webviewPanel.webview.asWebviewUri(cssPath);
+        const jsUri = webviewPanel.webview.asWebviewUri(jsPath);
+
+        // 替换资源路径
+        htmlContent = htmlContent.replace('./webview.css', cssUri.toString());
+        htmlContent = htmlContent.replace('./webview.js', jsUri.toString());
+
+        // 获取当前配置
+        const config = vscode.workspace.getConfiguration('fileAutoComment');
+        const commentMarker = config.get<string>('commentMarker', 'project');
+        const timeOffset = config.get<number>('timeOffset', 5);
+        const templates = config.get<Record<string, string>>('templates', {});
+        const enabledTemplates = config.get<Record<string, boolean>>('enabledTemplates', {});
+
+        // 生成模板HTML
+        const templatesHtml = Object.entries(templates).map(([lang, template]) => {
+            const isEnabled = enabledTemplates[lang] !== false; // 默认启用
+            return `
+            <div class="template-item">
+                <input type="checkbox" class="template-checkbox" ${isEnabled ? 'checked' : ''}>
+                <input type="text" class="language-input" value="${lang}" placeholder="Language">
+                <input type="text" class="template-input" value="${template}">
+                <button class="delete-template">Delete</button>
+            </div>
+            `;
+        }).join('');
+
+        // 替换占位符
+        htmlContent = htmlContent.replace('{{enabled}}', isEnabled ? 'checked' : '');
+        htmlContent = htmlContent.replace('{{status}}', isEnabled ? 'Enabled' : 'Disabled');
+        // 替换状态类名
+        htmlContent = htmlContent.replace(/class="status \{\{status === 'Enabled' \? 'enabled' : 'disabled'\}\}"/g, `class="status ${isEnabled ? 'enabled' : 'disabled'}"`);
+        htmlContent = htmlContent.replace(/class="container \{\{status === 'Enabled' \? 'enabled' : 'disabled'\}\}"/g, `class="container ${isEnabled ? 'enabled' : 'disabled'}"`);
+        htmlContent = htmlContent.replace('{{commentMarker}}', commentMarker);
+        htmlContent = htmlContent.replace('{{timeOffset}}', String(timeOffset));
+        htmlContent = htmlContent.replace('{{templates}}', templatesHtml);
+
+        // 设置webview内容
+        webviewPanel.webview.html = htmlContent;
     }
 
     const disposable = vscode.workspace.onWillSaveTextDocument(async (event) => {

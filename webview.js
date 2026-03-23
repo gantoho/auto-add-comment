@@ -1,0 +1,112 @@
+const vscode = acquireVsCodeApi();
+
+// 切换启用状态
+document.getElementById('enableToggle').addEventListener('change', function(e) {
+    vscode.postMessage({
+        command: 'toggleEnable',
+        enabled: e.target.checked
+    });
+});
+
+// 添加新模板
+document.getElementById('addTemplate').addEventListener('click', function() {
+    const container = document.getElementById('templatesContainer');
+    const newItem = document.createElement('div');
+    newItem.className = 'template-item';
+    newItem.innerHTML = `
+        <input type="checkbox" class="template-checkbox">
+        <input type="text" class="language-input" value="new" placeholder="Language">
+        <input type="text" class="template-input" value="" placeholder="Comment template">
+        <button class="delete-template">Delete</button>
+    `;
+    container.appendChild(newItem);
+});
+
+// 统一用事件委托处理所有删除按钮点击（核心修复）
+document.getElementById('templatesContainer').addEventListener('click', function(event) {
+    // 只处理删除按钮的点击
+    if (event.target.classList.contains('delete-template')) {
+        // 为模板项设置唯一ID
+        const templateItem = event.target.closest('.template-item');
+        if (templateItem) {
+            if (!templateItem.id) {
+                templateItem.id = 'template_' + Date.now();
+            }
+            
+            // 发送删除确认请求
+            vscode.postMessage({
+                command: 'confirmDelete',
+                templateId: templateItem.id
+            });
+        }
+    }
+});
+
+// 保存设置
+document.getElementById('saveButton').addEventListener('click', function() {
+    const commentMarker = document.getElementById('commentMarker').value || '';
+    const timeOffset = parseInt(document.getElementById('timeOffset').value) || 0;
+    
+    // 收集所有模板及其启用状态
+    const templates = {};
+    const enabledTemplates = {};
+    document.querySelectorAll('.template-item').forEach(item => {
+        const checkbox = item.querySelector('.template-checkbox');
+        const langInput = item.querySelector('.language-input');
+        const templateInput = item.querySelector('.template-input');
+        if (checkbox && langInput && templateInput) {
+            const lang = langInput.value.trim();
+            const template = templateInput.value.trim();
+            if (lang && template) {
+                templates[lang] = template;
+                enabledTemplates[lang] = checkbox.checked;
+            }
+        }
+    });
+    
+    vscode.postMessage({
+        command: 'updateConfig',
+        commentMarker: commentMarker,
+        timeOffset: timeOffset,
+        templates: templates,
+        enabledTemplates: enabledTemplates
+    });
+});
+
+// 打开VS Code设置
+document.getElementById('openSettingsButton').addEventListener('click', function() {
+    vscode.postMessage({
+        command: 'openSettings'
+    });
+});
+
+// 恢复默认设置
+document.getElementById('resetButton').addEventListener('click', function() {
+    vscode.postMessage({
+        command: 'resetSettings'
+    });
+});
+
+// 接收来自插件的消息
+window.addEventListener('message', event => {
+    const message = event.data;
+    console.log(event.data, event, message, '----')
+    if (message.command === 'updateStatus') {
+        // 更新Status显示
+        const statusElement = document.querySelector('.info .status');
+        const containerElement = document.querySelector('.container');
+        if (statusElement) {
+            statusElement.classList.remove('enabled', 'disabled');
+            statusElement.classList.add(message.enabled ? 'enabled' : 'disabled');
+            containerElement.classList.remove('enabled', 'disabled');
+            containerElement.classList.add(message.enabled ? 'enabled' : 'disabled');
+            statusElement.innerHTML = `${message.enabled ? 'Enabled' : 'Disabled'}`;
+        }
+    } else if (message.command === 'deleteConfirmed') {
+        // 执行删除操作
+        const templateItem = document.getElementById(message.templateId);
+        if (templateItem) {
+            templateItem.remove();
+        }
+    }
+});
