@@ -33,19 +33,15 @@
             <h2 class="section-title">注释设置</h2>
             <div class="settings-grid">
                 <div class="setting-item">
-                    <div class="label-with-description">
-                        <label class="form-label">注释标记</label>
-                        <span class="label-description">用于在模板中标识自动生成的注释（使用 {marker} 占位符）</span>
-                    </div>
+                    <label class="form-label">注释标记</label>
                     <input type="text" class="form-input" id="commentMarker" value="{{commentMarker}}" placeholder="注释的唯一标记">
+                    <span class="input-description">用于在模板中标识自动生成的注释（使用 {marker} 占位符）</span>
                 </div>
                 
                 <div class="setting-item">
-                    <div class="label-with-description">
-                        <label class="form-label">时间偏移（分钟）</label>
-                        <span class="label-description">时间偏移量（正数=向前，负数=向后），例如：5 = 5分钟后，-3 = 3分钟前（使用 {time} 占位符）</span>
-                    </div>
+                    <label class="form-label">时间偏移（分钟）</label>
                     <input type="number" class="form-input" id="timeOffset" value="{{timeOffset}}" placeholder="时间偏移分钟数">
+                    <span class="input-description">时间偏移量（正数=向前，负数=向后），例如：5 = 5分钟后，-3 = 3分钟前（使用 {time} 占位符）</span>
                 </div>
                 
                 <div class="setting-item full-width">

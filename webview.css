@@ -223,6 +223,14 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 0 0 1px var(--vscode-input-focusBorder);
 }
 
+.input-description {
+    font-size: 11px;
+    color: var(--vscode-editor-foreground);
+    opacity: 0.8;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
 /* 复选框容器 */
 .checkbox-container {
     display: flex;
