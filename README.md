@@ -11,6 +11,10 @@ compile
 ```sh
 $ npm run compile
 ```
+tsc
+```sh
+$ npx tsc
+```
 build
 ```sh
 $ npm install

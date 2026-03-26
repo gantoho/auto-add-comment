@@ -8,6 +8,7 @@
     --vscode-list-activeSelectionBackground: #094771;
     --vscode-focusBorder: #007acc;
     --vscode-button-foreground: #ffffff;
+    --vscode-button-background: #0e639c;
     --vscode-button-hoverBackground: #1177bb;
     --vscode-input-background: #252526;
     --vscode-input-foreground: #d4d4d4;
@@ -17,13 +18,16 @@
     --vscode-successForeground: #81c784;
     --vscode-warningForeground: #ffb74d;
     --vscode-infoForeground: #64b5f6;
+    --vscode-textLink-activeForeground: #007acc;
+    --vscode-editorInfo-foreground: #64b5f6;
+    --vscode-editorError-foreground: #f48771;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Droid Sans', 'Helvetica Neue', sans-serif;
     font-size: 13px;
     line-height: 1.5;
-    padding: 20px;
+    padding: 16px;
     background-color: var(--vscode-editor-background);
     margin: 0;
     color: var(--vscode-editor-foreground);
@@ -31,47 +35,99 @@ body {
 
 .container {
     width: 100%;
-    max-width: 666px;
+    max-width: 700px;
     margin: 0 auto;
     background: var(--vscode-sideBar-background);
-    padding: 20px;
+    padding: 24px;
     box-sizing: border-box;
-    border-radius: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .container.disabled {
     opacity: 0.5;
 }
 
-h1 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: var(--vscode-sideBar-foreground);
+/* 头部样式 */
+.header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--vscode-input-border);
-    padding-bottom: 10px;
 }
 
-.section {
+.header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--vscode-sideBar-foreground);
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.header-description {
+    font-size: 12px;
+    color: var(--vscode-editor-foreground);
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* 设置区块样式 */
+.settings-section {
     margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
 }
 
 .section-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin: 0 0 16px 0;
     color: var(--vscode-sideBar-foreground);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header .section-title {
+    margin: 0;
+}
+
+/* 网格布局 */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.setting-item.full-width {
+    grid-column: 1 / -1;
+}
+
+/* 切换开关容器 */
 .toggle-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--vscode-input-border);
+    padding: 8px 0;
+    border-bottom: none;
+}
+
+.toggle-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .toggle-label {
@@ -79,6 +135,12 @@ h1 {
     color: var(--vscode-sideBar-foreground);
 }
 
+.toggle-switch-container {
+    display: flex;
+    align-items: center;
+}
+
+/* 切换开关样式 */
 .toggle-switch {
     position: relative;
     display: inline-block;
@@ -124,16 +186,24 @@ input:checked + .toggle-slider:before {
     transform: translateX(22px);
 }
 
-.form-group {
-    margin-bottom: 16px;
+/* 表单样式 */
+.label-with-description {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
 }
 
 .form-label {
-    display: block;
     font-size: 13px;
     font-weight: 500;
-    margin-bottom: 6px;
     color: var(--vscode-sideBar-foreground);
+}
+
+.label-description {
+    font-size: 11px;
+    color: var(--vscode-editor-foreground);
+    opacity: 0.8;
+    margin-top: 2px;
 }
 
 .form-input {
@@ -153,147 +223,259 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 0 0 1px var(--vscode-input-focusBorder);
 }
 
+/* 复选框容器 */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.checkbox-label {
+    font-size: 13px;
+    color: var(--vscode-sideBar-foreground);
+    cursor: pointer;
+}
+
+.checkbox-description {
+    font-size: 11px;
+    color: var(--vscode-editor-foreground);
+    opacity: 0.8;
+}
+
+/* 模板样式 */
 .templates-container {
-    margin-top: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 .template-item {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
-    padding: 10px;
+    padding: 12px 16px;
     background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
+    border-bottom: 1px solid var(--vscode-input-border);
+    transition: all 0.2s ease;
+}
+
+.template-item:last-child {
+    border-bottom: none;
+}
+
+.template-item:hover {
+    background: var(--vscode-list-hoverBackground);
 }
 
 .template-item:has(input:checked) {
-    background: var(--vscode-charts-green);
+    background: rgba(129, 199, 132, 0.1);
+    border-left: 4px solid var(--vscode-successForeground);
 }
 
 .template-checkbox {
-    margin-right: 10px;
+    margin-right: 16px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
 .language-input {
-    width: 70px;
-    padding: 6px 8px;
-    border: 1px solid var(--vscode-input-foreground);
+    width: 80px;
+    padding: 8px 10px;
+    border: 1px solid var(--vscode-input-border);
     border-radius: 4px;
     font-size: 13px;
     background: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
-    margin-right: 10px;
+    margin-right: 12px;
+    transition: all 0.2s ease;
 }
 
 .language-input:focus {
     outline: none;
     border-color: var(--vscode-input-focusBorder);
     box-shadow: 0 0 0 1px var(--vscode-input-focusBorder);
+    background: var(--vscode-sideBar-background);
 }
 
 .template-input {
     flex: 1;
-    padding: 6px 8px;
-    border: 1px solid var(--vscode-input-foreground);
+    padding: 8px 10px;
+    border: 1px solid var(--vscode-input-border);
     border-radius: 4px;
     font-size: 13px;
     background: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
+    transition: all 0.2s ease;
 }
 
 .template-input:focus {
     outline: none;
     border-color: var(--vscode-input-focusBorder);
     box-shadow: 0 0 0 1px var(--vscode-input-focusBorder);
+    background: var(--vscode-sideBar-background);
 }
 
 .delete-template {
-    margin-left: 10px;
-    padding: 4px 8px;
+    margin-left: 12px;
+    padding: 6px 12px;
     background: transparent;
     color: var(--vscode-errorForeground);
     border: 1px solid var(--vscode-errorForeground);
     border-radius: 4px;
     font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .delete-template:hover {
     background: var(--vscode-errorForeground);
     color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* 按钮样式 */
 .add-template {
-    margin-top: 12px;
-    padding: 8px 16px;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
+    padding: 10px 16px;
+    background: var(--vscode-button-background);
+    border: 1px solid var(--vscode-button-background);
     border-radius: 4px;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    color: var(--vscode-sideBar-foreground);
+    color: var(--vscode-button-foreground);
+    transition: all 0.2s ease;
 }
 
 .add-template:hover {
-    background: var(--vscode-list-hoverBackground);
+    background: var(--vscode-button-hoverBackground);
+    border-color: var(--vscode-button-hoverBackground);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.button-group {
+.actions {
     display: flex;
-    gap: 8px;
-    margin-top: 24px;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 16px;
+    border-top: 1px solid var(--vscode-input-border);
 }
 
-.save-button {
-    padding: 8px 16px;
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
+.action-button {
+    padding: 9px 16px;
     border: none;
     border-radius: 4px;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.save-button:hover {
+.action-button.save {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.action-button.save:hover {
     background: var(--vscode-button-hoverBackground);
 }
 
-.button-secondary {
+.action-button.secondary {
     background: var(--vscode-input-background);
     color: var(--vscode-sideBar-foreground);
     border: 1px solid var(--vscode-input-border);
 }
 
-.button-secondary:hover {
+.action-button.secondary:hover {
     background: var(--vscode-list-hoverBackground);
 }
 
-#resetButton {
+.action-button.reset {
     background: var(--vscode-input-background);
     color: var(--vscode-editorError-foreground);
     border: 1px solid var(--vscode-editorError-foreground);
 }
 
-#resetButton:hover {
+.action-button.reset:hover {
     background: var(--vscode-editorError-foreground);
     color: white;
 }
 
-.flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
+/* 状态样式 */
+.status {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
 }
 
-.info .status {
-    padding: 2px 4px;
+.status.enabled {
+    background-color: var(--vscode-editorInfo-foreground);
+    color: var(--vscode-editor-background);
+}
+
+.status.disabled {
+    background-color: var(--vscode-editorError-foreground);
+    color: white;
+}
+
+/* 描述内容样式 */
+.form-description {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--vscode-editor-foreground);
+}
+
+.description-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.description-header:hover {
+    color: var(--vscode-focusBorder);
+}
+
+.toggle-icon {
+    margin-left: 8px;
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+
+.form-description-list {
+    margin-top: 8px;
+    margin-left: 20px;
+    padding: 8px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
     border-radius: 4px;
 }
-.info .status.enabled {
-    background-color: var(--vscode-editorInfo-foreground);
+
+.form-description-list li {
+    margin-bottom: 4px;
 }
 
-.info .status.disabled{
-    background-color: var(--vscode-editorError-foreground);
+.form-description-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .action-button {
+        width: 100%;
+        text-align: center;
+    }
 }

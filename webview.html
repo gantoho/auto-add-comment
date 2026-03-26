@@ -1,59 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Add Comment Settings</title>
+    <title>自动添加注释设置</title>
     <link rel="stylesheet" href="./webview.css">
 </head>
 <body>
     <div class="container {{status === 'Enabled' ? 'enabled' : 'disabled'}}">
-        <h1>Auto Add Comment Settings</h1>
-        <p>This extension automatically adds custom comments to files when saved.</p>
+        <header class="header">
+            <h1>自动添加注释设置</h1>
+            <p class="header-description">此扩展在保存文件时自动添加自定义注释</p>
+        </header>
 
-        <div class="section">
-            <div class="section-title flex">
-                <span>General Settings</span>
-            </div>
+        <section class="settings-section">
+            <h2 class="section-title">通用设置</h2>
             <div class="toggle-container">
-                <div class="info">
-                    <span class="toggle-label">Enable Auto Add Comment</span>
+                <div class="toggle-info">
+                    <span class="toggle-label">启用自动添加注释</span>
                     <span class="status {{status === 'Enabled' ? 'enabled' : 'disabled'}}">{{status}}</span>
                 </div>
-                <div class="toggle-content">
+                <div class="toggle-switch-container">
                     <label class="toggle-switch">
                         <input type="checkbox" {{enabled}} id="enableToggle">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
             </div>
-        </div>
+        </section>
         
-        <div class="section">
-            <div class="section-title">Comment Settings</div>
-            <div class="form-group">
-                <label class="form-label">Comment Marker</label>
-                <input type="text" class="form-input" id="commentMarker" value="{{commentMarker}}" placeholder="Unique marker for comments">
+        <section class="settings-section">
+            <h2 class="section-title">注释设置</h2>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <div class="label-with-description">
+                        <label class="form-label">注释标记</label>
+                        <span class="label-description">用于在模板中标识自动生成的注释（使用 {marker} 占位符）</span>
+                    </div>
+                    <input type="text" class="form-input" id="commentMarker" value="{{commentMarker}}" placeholder="注释的唯一标记">
+                </div>
+                
+                <div class="setting-item">
+                    <div class="label-with-description">
+                        <label class="form-label">时间偏移（分钟）</label>
+                        <span class="label-description">时间偏移量（正数=向前，负数=向后），例如：5 = 5分钟后，-3 = 3分钟前（使用 {time} 占位符）</span>
+                    </div>
+                    <input type="number" class="form-input" id="timeOffset" value="{{timeOffset}}" placeholder="时间偏移分钟数">
+                </div>
+                
+                <div class="setting-item full-width">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="enableWorkspaceFilter" {{enableWorkspaceFilter}}>
+                        <label for="enableWorkspaceFilter" class="checkbox-label">启用工作区过滤</label>
+                        <span class="checkbox-description">只处理指定工作区内的文件</span>
+                    </div>
+                </div>
+                
+                <div class="setting-item full-width">
+                    <div class="label-with-description">
+                        <label class="form-label">工作区路径</label>
+                    </div>
+                    <input type="text" class="form-input" id="workspacePath" value="{{workspacePath}}" placeholder="绝对工作区路径（留空处理所有文件）">
+                    <div class="form-description">
+                        <div class="description-header" onclick="toggleDescription()">
+                            <span>工作区过滤行为：</span>
+                            <span class="toggle-icon" id="toggleIcon">▼</span>
+                        </div>
+                        <ul class="form-description-list" id="descriptionContent" style="display: none;">
+                            <li>禁用：处理所有文件</li>
+                            <li>启用并设置路径：只处理指定路径内的文件</li>
+                            <li>启用但未设置路径：不处理任何文件</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Time Offset (minutes)</label>
-                <input type="number" class="form-input" id="timeOffset" value="{{timeOffset}}" placeholder="Time offset in minutes">
-            </div>
-        </div>
+        </section>
         
-        <div class="section">
-            <div class="section-title">Comment Templates</div>
+        <section class="settings-section">
+            <div class="section-header">
+                <h2 class="section-title">注释模板</h2>
+                <button class="add-template" id="addTemplate">添加模板</button>
+            </div>
             <div class="templates-container" id="templatesContainer">
                 {{templates}}
             </div>
-            <button class="add-template" id="addTemplate">Add Template</button>
-        </div>
+        </section>
         
-        <div class="button-group">
-            <button class="save-button" id="saveButton">Save Settings</button>
-            <button class="save-button button-secondary" id="openSettingsButton">Open VS Code Settings</button>
-            <button class="save-button" id="resetButton">Reset to Default</button>
-        </div>
+        <footer class="actions">
+            <button class="action-button save" id="saveButton">保存设置</button>
+            <button class="action-button secondary" id="openSettingsButton">打开VS Code设置</button>
+            <button class="action-button reset" id="resetButton">恢复默认设置</button>
+        </footer>
     </div>
     
     <script src="./webview.js"></script>

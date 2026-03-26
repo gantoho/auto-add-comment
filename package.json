@@ -3,7 +3,7 @@
   "displayName": "Auto Add Comment",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.3",
-  "icon": "images/icon.png",
+  "icon": "images/icon.webp",
   "publisher": "Ganto",
   "license": "MIT",
   "repository": {
@@ -55,6 +55,16 @@
           "additionalProperties": {
             "type": "boolean"
           }
+        },
+        "fileAutoComment.workspacePath": {
+          "type": "string",
+          "default": "",
+          "description": "Workspace path (absolute) where the extension should be active. If empty, extension works in all workspaces."
+        },
+        "fileAutoComment.enableWorkspaceFilter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable workspace filtering. When enabled, extension only works in the specified workspace path."
         }
       }
     },
@@ -76,13 +86,18 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.108.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.52.0",
+    "@types/vscode": "^1.108.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.2",
+    "mocha": "^11.7.5",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.52.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.3",
+    "diff": "^8.0.3"
   }
 }

@@ -1,5 +1,18 @@
 const vscode = acquireVsCodeApi();
 
+// 切换描述内容的显示/隐藏
+function toggleDescription() {
+    const content = document.getElementById('descriptionContent');
+    const icon = document.getElementById('toggleIcon');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.textContent = '▲';
+    } else {
+        content.style.display = 'none';
+        icon.textContent = '▼';
+    }
+}
+
 // 切换启用状态
 document.getElementById('enableToggle').addEventListener('change', function(e) {
     vscode.postMessage({
@@ -46,6 +59,8 @@ document.getElementById('templatesContainer').addEventListener('click', function
 document.getElementById('saveButton').addEventListener('click', function() {
     const commentMarker = document.getElementById('commentMarker').value || '';
     const timeOffset = parseInt(document.getElementById('timeOffset').value) || 0;
+    const enableWorkspaceFilter = document.getElementById('enableWorkspaceFilter').checked;
+    const workspacePath = document.getElementById('workspacePath').value || '';
     
     // 收集所有模板及其启用状态
     const templates = {};
@@ -68,6 +83,8 @@ document.getElementById('saveButton').addEventListener('click', function() {
         command: 'updateConfig',
         commentMarker: commentMarker,
         timeOffset: timeOffset,
+        enableWorkspaceFilter: enableWorkspaceFilter,
+        workspacePath: workspacePath,
         templates: templates,
         enabledTemplates: enabledTemplates
     });
@@ -93,7 +110,7 @@ window.addEventListener('message', event => {
     console.log(event.data, event, message, '----')
     if (message.command === 'updateStatus') {
         // 更新Status显示
-        const statusElement = document.querySelector('.info .status');
+        const statusElement = document.querySelector('.toggle-info .status');
         const containerElement = document.querySelector('.container');
         if (statusElement) {
             statusElement.classList.remove('enabled', 'disabled');

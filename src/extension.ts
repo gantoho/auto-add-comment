@@ -188,6 +188,12 @@ export function activate(context: vscode.ExtensionContext) {
                         if (message.timeOffset !== undefined) {
                             updatePromises.push(config.update('timeOffset', message.timeOffset, vscode.ConfigurationTarget.Global));
                         }
+                        if (message.enableWorkspaceFilter !== undefined) {
+                            updatePromises.push(config.update('enableWorkspaceFilter', message.enableWorkspaceFilter, vscode.ConfigurationTarget.Global));
+                        }
+                        if (message.workspacePath !== undefined) {
+                            updatePromises.push(config.update('workspacePath', message.workspacePath, vscode.ConfigurationTarget.Global));
+                        }
                         if (message.templates !== undefined) {
                             updatePromises.push(config.update('templates', message.templates, vscode.ConfigurationTarget.Global));
                         }
@@ -201,10 +207,12 @@ export function activate(context: vscode.ExtensionContext) {
                                 // 验证保存是否成功
                                 const savedEnabledTemplates = config.get<Record<string, boolean>>('enabledTemplates', {});
                                 console.log('Saved enabledTemplates:', savedEnabledTemplates);
-                                vscode.window.showInformationMessage('Auto Add Comment settings updated');
+                                vscode.window.showInformationMessage('自动添加注释设置已更新');
+
                             }).catch(error => {
                                 console.error('Error updating config:', error);
-                                vscode.window.showErrorMessage('Failed to update settings');
+                                vscode.window.showErrorMessage('更新设置失败');
+
                             });
                         }
                         break;
@@ -215,12 +223,12 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'confirmDelete':
                         // 显示删除确认对话框
                         vscode.window.showInformationMessage(
-                            'Are you sure you want to delete this template?',
+                            '确定要删除此模板吗？',
                             { modal: true },
-                            'Yes',
-                            'No'
+                            '是',
+                            '否'
                         ).then(answer => {
-                            if (answer === 'Yes' && webviewPanel) {
+                            if (answer === '是' && webviewPanel) {
                                 // 获取当前配置
                                 const config = vscode.workspace.getConfiguration('fileAutoComment');
                                 const templates = config.get<Record<string, string>>('templates', {});
@@ -246,23 +254,26 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'resetSettings':
                         // 恢复默认设置
                         vscode.window.showInformationMessage(
-                            'Are you sure you want to reset all settings to default?',
+                            '确定要将所有设置恢复为默认值吗？',
                             { modal: true },
-                            'Yes',
-                            'No'
+                            '是',
+                            '否'
                         ).then(answer => {
-                            if (answer === 'Yes') {
+                            if (answer === '是') {
                                 const config = vscode.workspace.getConfiguration('fileAutoComment');
                                 // 恢复默认配置
                                 Promise.all([
                                     config.update('commentMarker', 'project', vscode.ConfigurationTarget.Global),
                                     config.update('timeOffset', 5, vscode.ConfigurationTarget.Global),
+                                    config.update('enableWorkspaceFilter', false, vscode.ConfigurationTarget.Global),
+                                    config.update('workspacePath', '', vscode.ConfigurationTarget.Global),
                                     config.update('templates', {}, vscode.ConfigurationTarget.Global),
                                     config.update('enabledTemplates', {}, vscode.ConfigurationTarget.Global)
                                 ]).then(() => {
                                     // 配置更新完成后，重新加载webview内容
                                     updateWebviewContent();
-                                    vscode.window.showInformationMessage('Auto Add Comment settings reset to default');
+                                    vscode.window.showInformationMessage('自动添加注释设置已恢复为默认值');
+
                                 });
                             }
                         });
@@ -303,6 +314,8 @@ export function activate(context: vscode.ExtensionContext) {
         const config = vscode.workspace.getConfiguration('fileAutoComment');
         const commentMarker = config.get<string>('commentMarker', 'project');
         const timeOffset = config.get<number>('timeOffset', 5);
+        const enableWorkspaceFilter = config.get<boolean>('enableWorkspaceFilter', false);
+        const workspacePath = config.get<string>('workspacePath', '');
         const templates = config.get<Record<string, string>>('templates', {});
         const enabledTemplates = config.get<Record<string, boolean>>('enabledTemplates', {});
 
@@ -327,6 +340,8 @@ export function activate(context: vscode.ExtensionContext) {
         htmlContent = htmlContent.replace(/class="container \{\{status === 'Enabled' \? 'enabled' : 'disabled'\}\}"/g, `class="container ${isEnabled ? 'enabled' : 'disabled'}"`);
         htmlContent = htmlContent.replace('{{commentMarker}}', commentMarker);
         htmlContent = htmlContent.replace('{{timeOffset}}', String(timeOffset));
+        htmlContent = htmlContent.replace('{{enableWorkspaceFilter}}', enableWorkspaceFilter ? 'checked' : '');
+        htmlContent = htmlContent.replace('{{workspacePath}}', workspacePath);
         htmlContent = htmlContent.replace('{{templates}}', templatesHtml);
 
         // 设置webview内容
@@ -341,6 +356,43 @@ export function activate(context: vscode.ExtensionContext) {
 
         const document = event.document;
         const filePath = document.uri.fsPath;
+
+        // 检查工作区路径配置
+        const config = vscode.workspace.getConfiguration('fileAutoComment');
+        const enableWorkspaceFilter = config.get<boolean>('enableWorkspaceFilter', false);
+        const workspacePath = config.get<string>('workspacePath', '');
+        
+        if (enableWorkspaceFilter && workspacePath) {
+            try {
+                // 标准化路径并确保末尾有路径分隔符
+                const normalizedFilePath = path.normalize(filePath);
+                let normalizedWorkspacePath = path.normalize(workspacePath);
+                
+                // 确保工作区路径末尾有路径分隔符，避免子路径误判
+                if (!normalizedWorkspacePath.endsWith(path.sep)) {
+                    normalizedWorkspacePath += path.sep;
+                }
+                
+                console.log(`[工作区检查] 检查文件 ${normalizedFilePath} 是否在工作区 ${normalizedWorkspacePath} 内`);
+                
+                // 在Windows上进行大小写不敏感的比较
+                const isInWorkspace = process.platform === 'win32' 
+                    ? normalizedFilePath.toLowerCase().startsWith(normalizedWorkspacePath.toLowerCase())
+                    : normalizedFilePath.startsWith(normalizedWorkspacePath);
+                
+                if (!isInWorkspace) {
+                    console.log(`[工作区检查] 文件 ${filePath} 不在配置的工作区内，跳过处理`);
+                    return;
+                }
+                console.log(`[工作区检查] 文件 ${filePath} 在配置的工作区内，继续处理`);
+            } catch (error) {
+                console.error('[工作区检查] 路径检查出错:', error);
+                // 出错时继续处理，避免插件完全失效
+            }
+        } else if (enableWorkspaceFilter) {
+            console.log('[工作区检查] 工作区过滤已启用，但未设置工作区路径，跳过处理');
+            return;
+        }
 
         if (event.reason !== vscode.TextDocumentSaveReason.Manual) {
             return;
