@@ -4,7 +4,7 @@
   "description": "Auto add custom comment to files on save",
   "version": "0.0.5",
   "icon": "images/icon.webp",
-  "publisher": "autocomment",
+  "publisher": "ganto",
   "license": "MIT",
   "repository": {
     "type": "git",
