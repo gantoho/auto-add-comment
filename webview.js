@@ -1,5 +1,8 @@
 const vscode = acquireVsCodeApi();
 
+// 配置修改状态
+let hasUnsavedChanges = false;
+
 // 切换描述内容的显示/隐藏
 function toggleDescription() {
     const content = document.getElementById('descriptionContent');
@@ -13,12 +16,52 @@ function toggleDescription() {
     }
 }
 
+// 标记配置已修改
+function markAsChanged() {
+    hasUnsavedChanges = true;
+    // 更新保存按钮样式，提示用户有未保存的更改
+    const saveButton = document.getElementById('saveButton');
+    if (saveButton) {
+        saveButton.classList.add('has-changes');
+    }
+}
+
+// 标记配置已保存
+function markAsSaved() {
+    hasUnsavedChanges = false;
+    // 恢复保存按钮样式
+    const saveButton = document.getElementById('saveButton');
+    if (saveButton) {
+        saveButton.classList.remove('has-changes');
+    }
+}
+
 // 切换启用状态
 document.getElementById('enableToggle').addEventListener('change', function(e) {
+    markAsChanged();
     vscode.postMessage({
         command: 'toggleEnable',
         enabled: e.target.checked
     });
+});
+
+// 监听配置项变化
+document.getElementById('commentMarker').addEventListener('input', markAsChanged);
+document.getElementById('timeOffset').addEventListener('input', markAsChanged);
+document.getElementById('enableWorkspaceFilter').addEventListener('change', markAsChanged);
+document.getElementById('workspacePath').addEventListener('input', markAsChanged);
+
+// 监听模板变化
+document.getElementById('templatesContainer').addEventListener('input', function(event) {
+    if (event.target.classList.contains('language-input') || event.target.classList.contains('template-input')) {
+        markAsChanged();
+    }
+});
+
+document.getElementById('templatesContainer').addEventListener('change', function(event) {
+    if (event.target.classList.contains('template-checkbox')) {
+        markAsChanged();
+    }
 });
 
 // 添加新模板
@@ -27,12 +70,18 @@ document.getElementById('addTemplate').addEventListener('click', function() {
     const newItem = document.createElement('div');
     newItem.className = 'template-item';
     newItem.innerHTML = `
-        <input type="checkbox" class="template-checkbox">
+        <div class="template-toggle">
+            <label class="toggle-switch">
+                <input type="checkbox" class="template-checkbox">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
         <input type="text" class="language-input" value="new" placeholder="Language">
         <input type="text" class="template-input" value="" placeholder="Comment template">
         <button class="delete-template">Delete</button>
     `;
     container.appendChild(newItem);
+    markAsChanged();
 });
 
 // 统一用事件委托处理所有删除按钮点击（核心修复）
@@ -51,6 +100,9 @@ document.getElementById('templatesContainer').addEventListener('click', function
                 command: 'confirmDelete',
                 templateId: templateItem.id
             });
+            
+            // 标记配置已修改
+            markAsChanged();
         }
     }
 });
@@ -88,6 +140,9 @@ document.getElementById('saveButton').addEventListener('click', function() {
         templates: templates,
         enabledTemplates: enabledTemplates
     });
+    
+    // 标记配置已保存
+    markAsSaved();
 });
 
 // 打开VS Code设置

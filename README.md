@@ -21,7 +21,7 @@ $ npm install
 $ vsce package
 ```
 
-## Release
+## 发布 Tag
 
 ### 创建 Tag
 ```sh
@@ -82,6 +82,11 @@ $ git push origin main
    ```sh
    $ vsce publish
    ```
+
+
+## Release
+
+依赖GitHub Actions自动化发布Release
 
 
 ## 参考常用配置

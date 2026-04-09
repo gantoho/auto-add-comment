@@ -324,7 +324,12 @@ export function activate(context: vscode.ExtensionContext) {
             const isEnabled = enabledTemplates[lang] !== false; // 默认启用
             return `
             <div class="template-item">
-                <input type="checkbox" class="template-checkbox" ${isEnabled ? 'checked' : ''}>
+                <div class="template-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="template-checkbox" ${isEnabled ? 'checked' : ''}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
                 <input type="text" class="language-input" value="${lang}" placeholder="Language">
                 <input type="text" class="template-input" value="${template}">
                 <button class="delete-template">Delete</button>
