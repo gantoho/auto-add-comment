@@ -55,11 +55,14 @@ $ git push origin main
 ```
 #### 使用npm version patch 更新版本号
 ```sh
-# 更新版本号，自动追加版本号
+# 更新版本号，自动追加版本号，会自动创建Tag
 $ npm version patch
 
 # 推送代码
 $ git push origin main
+
+# 因为自动创建Tag，所以不需要手动创建Tag，只需要推送新版本Tag到远程仓库即可
+$ git push origin v0.0.5
 ```
 
 ### 发布插件
