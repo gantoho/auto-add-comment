@@ -86,6 +86,7 @@ $ git push origin v0.0.5
    $ vsce publish
    ```
 
+https://marketplace.visualstudio.com/manage/publishers
 
 ## Release
 
