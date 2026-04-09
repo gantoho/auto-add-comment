@@ -21,7 +21,70 @@ $ npm install
 $ vsce package
 ```
 
-## 配置
+## Release
+
+### 创建 Tag
+```sh
+# 查看当前分支
+$ git branch
+
+# 确保在主分支
+$ git checkout main
+
+# 拉取最新代码
+$ git pull origin main
+
+# 创建标签（版本号根据实际情况修改）
+$ git tag -a v0.0.1 -m "Release v0.0.1"
+
+# 推送标签到远程仓库
+$ git push origin v0.0.1
+```
+
+### 更新插件版本号
+#### 手动更新
+```sh
+# 打开 extension.json 文件
+$ code extension.json
+
+# 更新 version 字段为新版本号
+"version": "0.0.1"
+
+# 推送代码
+$ git push origin main
+```
+#### 使用npm version patch 更新版本号
+```sh
+# 更新版本号，自动追加版本号
+$ npm version patch
+
+# 推送代码
+$ git push origin main
+```
+
+### 发布插件
+1. 确保已安装 `@vscode/vsce` 工具
+   ```sh
+   $ npm install -g @vscode/vsce
+   ```
+
+2. 编译插件
+   ```sh
+   $ npm run compile
+   ```
+
+3. 打包插件
+   ```sh
+   $ vsce package
+   ```
+
+4. 发布插件（需要 VS Code Marketplace 账号）
+   ```sh
+   $ vsce publish
+   ```
+
+
+## 参考常用配置
 ```
 "php": "<?php # {marker}|{time} ?>",
 "js": "// ! {marker}|{time} !",
