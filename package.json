@@ -1,6 +1,6 @@
 {
-  "name": "horse",
-  "displayName": "Horse",
+  "name": "little-horse",
+  "displayName": "Little Horse",
   "description": "Auto add custom comment to files on save",
   "version": "0.0.6",
   "icon": "images/icon.webp",
