@@ -2,7 +2,7 @@
   "name": "horse",
   "displayName": "Horse",
   "description": "Auto add custom comment to files on save",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "icon": "images/icon.webp",
   "publisher": "ganto",
   "license": "MIT",
