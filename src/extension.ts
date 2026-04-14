@@ -100,12 +100,19 @@ function findMarkerCommentLine(document: vscode.TextDocument): number | null {
     const marker = getCommentMarker();
     if (!marker) { return null; }
 
-    // 遍历所有行查找包含标识的注释
-    for (let i = 0; i < document.lineCount; i++) {
+    // 从文件末尾开始向前查找，找到第一个非空行
+    for (let i = document.lineCount - 1; i >= 0; i--) {
         const lineText = document.lineAt(i).text;
+        // 跳过空行
+        if (lineText.trim() === '') {
+            continue;
+        }
+        // 检查这一行是否包含 marker 标识
         if (lineText.includes(marker)) {
             return i;
         }
+        // 找到第一个非空行后，如果不包含 marker 标识，就停止查找
+        break;
     }
     return null;
 }
