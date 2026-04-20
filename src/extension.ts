@@ -433,11 +433,14 @@ export function activate(context: vscode.ExtensionContext) {
             const edit = new vscode.WorkspaceEdit();
             let needAutoSave = false;
 
+            // 获取自定义标识
+            const marker = getCommentMarker();
+            
             // 查找已有注释行
             const commentLineNum = findMarkerCommentLine(document);
             if (commentLineNum !== null) {
-                // 找到注释行 → 替换整行
-                console.log(`[替换注释] 文件${filePath}的第${commentLineNum}行`);
+                // 找到注释行 → 直接用配置的格式覆盖
+                console.log(`[覆盖注释] 文件${filePath}的第${commentLineNum}行`);
                 const commentLine = document.lineAt(commentLineNum);
                 edit.replace(document.uri, commentLine.range, commentContent);
                 needAutoSave = true;
